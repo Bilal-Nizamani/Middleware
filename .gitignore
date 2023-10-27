@@ -1,0 +1,29 @@
+# Node.js
+node_modules/
+
+# Dependency directories
+/dist/
+/tmp/
+/package-lock.json
+
+# Environment files
+.env
+
+# macOS
+.DS_Store
+
+# Logs
+logs
+*.log
+npm-debug.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+
+# Compiled binary addons (Node.js)
+/build/ 
+
+# Test directories
+/__tests__/
+/test/
