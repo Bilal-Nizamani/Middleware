@@ -1,36 +1,51 @@
 const express = require("express");
+const mongoose = require("mongoose");
+const session = require("express-session");
 
-const app = express();
-// gloabal middleware for routes
-app.use(middleWare1);
-app.use(middleWare2);
-function errHandler(err, req, res, next) {
-  if (err) {
-    res.send(err.message);
+// Package documentation - https://www.npmjs.com/package/connect-mongo
+const MongoStore = require("connect-mongo")(session);
+
+// Create the Express application
+var app = express();
+// <user>:<password>@
+const dbString =
+  "mongodb://bilal_nizamani:03330369169@localhost:27017/?authMechanism=DEFAULT";
+const dbOptions = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+};
+const connection = mongoose.createConnection(dbString, dbOptions);
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const sessionStore = new MongoStore({
+  mongooseConnection: connection,
+  collection: "sessions",
+});
+
+app.use(
+  session({
+    secret: "some secret",
+    resave: false,
+    saveUninitialized: true,
+    store: sessionStore,
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24, // Equals 1 day (1 day * 24 hr/1 day * 60 min/1 hr * 60 sec/1 min * 1000 ms / 1 sec)
+    },
+  })
+);
+
+app.get("/", (req, res, next) => {
+  if (req.session.viewCount) {
+    req.session.viewCount = req.session.viewCount + 1;
+  } else {
+    req.session.viewCount = 1;
   }
-}
-function middleWare1(req, res, next) {
-  req.myName = "bilal";
-  next();
-}
-function middleWare2(req, res, next) {
-  console.log(req.myName);
-  req.myName = "ggg";
-  let manualError = new Error("Manual Errror to test ");
-  next(manualError);
-}
-function expressCallabck(req, res, next) {
-  res.send(req.myName);
-}
-function routeMiddleWare(req, res, next) {
-  if (req.myName !== "ggg") {
-    let manualError = new Error("Manual routeMiddleware Error to test ");
-    next(manualError);
-  }
-  req.authentication = true;
-  next();
-}
-// route specific middlewares
-app.get("/", routeMiddleWare, expressCallabck);
-app.use(errHandler);
+
+  res.send(
+    `<h1>You have visited this page ${req.session.viewCount} times.</h1>`
+  );
+});
+
 app.listen(3000);
